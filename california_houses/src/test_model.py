@@ -1,3 +1,6 @@
+"""
+Test of model trained in `model.py`.
+"""
 
 import os
 import joblib
@@ -8,6 +11,7 @@ from sklearn.metrics import mean_squared_error
 
 
 def main():
+    """Reads test dataset and testlabels and applies prediction."""
 
     model_path = os.path.join("..", "models", "forest_reg.pkl")
     model = joblib.load(model_path)

@@ -1,3 +1,7 @@
+"""
+This is the regression model, which predicts house prices in California based on several features.
+"""
+
 import os
 
 import joblib
@@ -15,7 +19,10 @@ from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.ensemble import RandomForestRegressor
 
 
+# BaseEstimator provides `set_params()` and `get_params()` methods.
+# TransformerMixin provides `fit_transform()` method.
 class CombinedAttributesAdder(BaseEstimator, TransformerMixin):
+    """Provides addition of several new features."""
 
     def __init__(self, add_bedrooms_per_room=True):  # No *args or **kwargs.
         self.add_bedrooms_per_room = add_bedrooms_per_room
@@ -24,6 +31,7 @@ class CombinedAttributesAdder(BaseEstimator, TransformerMixin):
         return self  # Eothing else to do.
 
     def transform(self, X):
+        """Adds new features to dataset."""
         rooms_ix, bedrooms_ix, population_ix, households_ix = 3, 4, 5, 6
         rooms_per_household = X[:, rooms_ix] / X[:, households_ix]
         population_per_household = X[:, population_ix] / X[:, households_ix]
@@ -35,7 +43,7 @@ class CombinedAttributesAdder(BaseEstimator, TransformerMixin):
 
 
 def stratified_train_test_split(housing):
-
+    """Split dataset with accordance to income category (most relevant feature)."""
     housing["income_cat"] = pd.cut(
         housing["median_income"],
         bins=[0., 1.5, 3.0, 4.5, 6., np.inf],
@@ -54,6 +62,10 @@ def stratified_train_test_split(housing):
 
 
 def pipeline_preprocessing(num_attribs, cat_attribs):
+    """Returns transforming pipeline. The defined pipeline fills
+    numeric null values with median, adds new features and applies
+    standardisation on each numeric column. For `ocean_proximity`
+    the OneHotEncoder is applied."""
 
     num_pipeline = Pipeline([
         ("imputer", SimpleImputer(strategy="median")),
@@ -70,15 +82,15 @@ def pipeline_preprocessing(num_attribs, cat_attribs):
 
 
 def save_model(forest_reg):
-
+    """Saves trained model to file."""
     model_dir = os.path.join("..", "models")
     os.makedirs(model_dir, exist_ok=True)
-
     model_path = os.path.join("..", "models", "forest_reg.pkl")
     joblib.dump(forest_reg, model_path)
 
 
 def save_test_sets(test_set_labels, test_set_prepared):
+    """Saves test dataset and test labels to csv files."""
     test_set_to_csv = pd.DataFrame(test_set_prepared)  # type: ignore
     test_set_path = os.path.join("..", "data", "test_set.csv")
     test_set_to_csv.to_csv(test_set_path, index=False)
@@ -89,6 +101,7 @@ def save_test_sets(test_set_labels, test_set_prepared):
 
 
 def main():
+    """Prepares data and applies chosen regression model."""
 
     data_path = os.path.join("..", "data", "housing.csv")
     housing = pd.read_csv(data_path, engine="c")
