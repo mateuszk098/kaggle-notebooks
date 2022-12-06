@@ -1,3 +1,9 @@
+# Usually datasets are downloaded online.
+data/
+
+# Models are too big
+models/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
