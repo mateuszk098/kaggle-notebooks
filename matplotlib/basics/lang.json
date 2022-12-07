@@ -1,0 +1,14 @@
+{
+    "PL": {
+        "Median Salary (USD)": "Mediana Wynagrodzenia (USD)",
+        "Age": "Wiek",
+        "Median Salary (USD) by Age": "Miediana Wynagrodzenia (USD) względem Wieku",
+        "All Developers": "Wszyscy Developerzy"
+    },
+    "EN": {
+        "Median Salary (USD)": "Median Salary (USD)",
+        "Age": "Age",
+        "Median Salary (USD) by Age": "Median Salary (USD) by Age",
+        "All Developers": "All Developers"
+    }
+}
