@@ -4,6 +4,8 @@ data/
 # Models are too big
 models/
 
+images/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
