@@ -6,6 +6,13 @@ models/
 
 images/
 
+# Numpy arrays
+*.npy
+*.npz
+
+# Sklearn models
+*.pkl
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
