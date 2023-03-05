@@ -7,17 +7,21 @@ import os
 import sys
 from pathlib import Path
 
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import sklearn
+import tensorflow as tf
+import keras_tuner as kt
 from packaging import version
-
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 
 # This notebook requires Python 3.7 or above and Scikit-Learn 1.0.1 or above.
 assert sys.version_info >= (3, 7)
 assert version.parse(sklearn.__version__) >= version.parse("1.0.1")
+
+# And TensorFlow 2.8 or above.
+assert version.parse(tf.__version__) >= version.parse("2.8.0")
 
 # Graphviz source.
 os.environ["PATH"] += os.pathsep + "C:/Programy/Graphviz/bin/"
@@ -51,7 +55,9 @@ IMAGES_PATH = Path("images")
 IMAGES_PATH.mkdir(parents=True, exist_ok=True)
 
 
-def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300, facecolor="w"):
+def save_fig(
+    fig_id, tight_layout=True, fig_extension="png", resolution=300, facecolor="w"
+):
     path = IMAGES_PATH / f"{fig_id}.{fig_extension}"
     if tight_layout:
         plt.tight_layout()
