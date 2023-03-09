@@ -21,3 +21,7 @@
 :chart_with_upwards_trend: **[Section 10](https://github.com/mateuszk098/data_science/tree/master/hands_on_machine_learning/section10) - Introduction to Artificial Neural Networks with Keras**
 
 :chart_with_upwards_trend: **[Section 11](https://github.com/mateuszk098/data_science/tree/master/hands_on_machine_learning/section11) - Training Deep Neural Networks**
+
+:chart_with_upwards_trend: **[Section 12](https://github.com/mateuszk098/data_science/tree/master/hands_on_machine_learning/section12) - Custom Models and Training with TensorFlow**
+
+:chart_with_upwards_trend: **[Section 13](https://github.com/mateuszk098/data_science/tree/master/hands_on_machine_learning/section13) - Loading and Preprocessing Data with TensorFlow**
