@@ -25,3 +25,5 @@
 :chart_with_upwards_trend: **[Section 12](https://github.com/mateuszk098/data_science/tree/master/hands_on_machine_learning/section12) - Custom Models and Training with TensorFlow**
 
 :chart_with_upwards_trend: **[Section 13](https://github.com/mateuszk098/data_science/tree/master/hands_on_machine_learning/section13) - Loading and Preprocessing Data with TensorFlow**
+
+:chart_with_upwards_trend: **[Section 14](https://github.com/mateuszk098/data_science/tree/master/hands_on_machine_learning/section14) - Deep Computer Vision using Convolutional Neural Networks**
