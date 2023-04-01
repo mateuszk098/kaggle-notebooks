@@ -1,17 +1,17 @@
-# Usually datasets are downloaded online.
+# Custom files/directories
+proto/
 data/
-
-# Models are too big
+datasets/
 models/
-
+weights/
+checkpoints/
+logs/
+keras_tuner/
 images/
-
-# Numpy arrays
 *.npy
 *.npz
-
-# Sklearn models
 *.pkl
+*.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
