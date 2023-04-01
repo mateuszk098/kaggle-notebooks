@@ -1,0 +1,144 @@
+#ipython-main-app {
+    position: relative;
+}
+
+#jupyter-main-app {
+    position: relative;
+}
+
+#site {
+    background: #2F3046;
+}
+
+#ipython_notebook img {
+    display: block;
+    background-size: contain;
+    width: 100px;
+    height: 30px;
+    padding-left: 100px;
+    padding-right: 50px;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'cascadia code', 'monospace';
+}
+
+body>#header {
+    background: #787DC1;
+    font-weight: 505;
+}
+
+img {
+    filter: invert(100%);
+    background: white;
+}
+
+#notebook_name {
+    font-weight: 500;
+    color: white;
+}
+
+.CodeMirror {
+    font-size: 18px;
+    /*Code font-size*/
+    /* font-weight: 505; */
+    font-family: 'cascadia code', 'monospace';
+    background: #E7E7D5;
+}
+
+
+.checkpoint_status,
+.autosave_status {
+    color: white;
+}
+
+.navbar-default {
+    background: none;
+    border: none;
+}
+
+.navbar-default .navbar-nav>li>a,
+#kernel_indicator {
+    color: white;
+    transition: all 0.25s;
+}
+
+/* .navbar-default .navbar-nav > li > a:hover, #kernel_indicator:hover {
+    border-bottom: 2px solid #fff;
+    color: white;
+} */
+
+.notebook_app {
+    background: #0D0D0D !important;
+}
+
+.container {
+    width: 95% !important;
+    /* background: #2F3046 !important; */
+    filter: invert(100%);
+}
+
+#notebook-container {
+    box-shadow: none !important;
+    background-color: white;
+}
+
+div.input_area {
+    border: none;
+    border-radius: 0;
+    background: #f7f7f7;
+    line-height: 1.5em;
+    margin: 0.5em 0;
+    padding: 0;
+}
+
+div.cell {
+    transition: all 0.25s;
+    /* border: none; */
+    position: relative;
+    top: 0;
+    margin-top: 1rem;
+}
+
+div.cell.selected,
+div.cell.selected.jupyter-soft-selected {
+    border-color: orange;
+    border-width: 2px;
+    /* box-shadow: 0px 0px 4px 3px #415934; */
+    z-index: 10;
+    top: -10px;
+    background: #E2E2E2;
+}
+
+div.cell.selected::before {
+    background: orange;
+}
+
+/* .output {
+    align-items: center;
+} */
+
+/* div.output_subarea.output_png {
+  filter: invert(100%);
+  background: #87823e;
+  color: black;
+} */
+
+.plotly-graph-div,
+.js-plotly-plot {
+    filter: invert(100%);
+}
+
+
+.dataframe {
+    background: white;
+    box-shadow: 0px 1px 2px #bbb;
+}
+
+.dataframe thead th,
+.dataframe tbody td {
+    text-align: right;
+    padding: 1em;
+}
