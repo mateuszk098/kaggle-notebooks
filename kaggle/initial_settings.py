@@ -56,6 +56,19 @@ MY_RC = {
 
 sns.set_theme(rc=MY_RC)
 
+notebook_palette = {
+    "graphite_blue": "#26344E",
+    "purple_blue1": "#2A357D",
+    "purple_blue2": "#454D82",
+    "dark_blue1": "#141B4D",
+    "dark_blue2": "#0F173B",
+    "light_white": "#F2F2F0",
+    "light_beige1": "#F6F5F5",
+    "light_beige2": "#FFFAF6",
+    "orange": "#C73C1A",
+    "graphite": "#3E3F4C",
+}
+
 # =============================================================================
 # Utility functions.
 def download_from_kaggle(competition):
