@@ -6,14 +6,14 @@
 
 ## **Contents:**
 
-:memo: **[Hands on Machine Learning](https://github.com/mateuszk098/data_science/tree/master/hands_on_machine_learning)**  
+:chart_with_upwards_trend: **[Digit Recognizer](https://github.com/mateuszk098/data_science/tree/master/kaggle/digit_recognizer) - See description here: [Digit Recognizer](https://www.kaggle.com/competitions/digit-recognizer)**
 
-**Notebooks from _Hands-On Machine Learning with Scikit-Learn, Keras, and TensorFlow: Concepts, Tools, and Techniques to Build Intelligent Systems_ by Aurélien Géron. These notebooks are sourced from the original repository - [handson-ml3](https://github.com/ageron/handson-ml3) and are being used under the terms of the Apache-2.0 license. I am not the original author of these notebooks. I use them under the Apache-2.0 license.**
+:chart_with_upwards_trend: **[House Prices](https://github.com/mateuszk098/data_science/tree/master/kaggle/house_prices) - See description here: [House Prices](https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques)**
 
-:memo: **[Kaggle](https://github.com/mateuszk098/data_science/tree/master/kaggle)**  
+:chart_with_upwards_trend: **[Playground Series S3E9](https://github.com/mateuszk098/data_science/tree/master/kaggle/playground_series_s3e9) - See description here: [Playground Series S3E9](https://www.kaggle.com/competitions/playground-series-s3e9)**
 
-**Notebooks from [Kaggle](https://www.kaggle.com/competitions) competitions.**
+:chart_with_upwards_trend: **[Playground Series S3E10](https://github.com/mateuszk098/data_science/tree/master/kaggle/playground_series_s3e10) - See description here: [Playground Series S3E10](https://www.kaggle.com/competitions/playground-series-s3e10)**
 
-:memo: **[Python for Data Analysis](https://github.com/mateuszk098/data_science/tree/master/python_for_data_analysis)**
+:chart_with_upwards_trend: **[Spaceship Titanic](https://github.com/mateuszk098/data_science/tree/master/kaggle/spaceship_titanic) - See description here: [Spaceship Titanic](https://www.kaggle.com/competitions/spaceship-titanic)**
 
-**Notebooks based on _the Python for Data Analysis_ by Wes McKinney under the MIT license. The whole thing is inspired by [pydata-book](https://github.com/wesm/pydata-book), but some things I have tested myself or are written by me.**
+:chart_with_upwards_trend: **[Titanic](https://github.com/mateuszk098/data_science/tree/master/kaggle/titanic) - See description here: [Titanic](https://www.kaggle.com/competitions/titanic)**
