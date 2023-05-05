@@ -14,6 +14,10 @@
 
 :chart_with_upwards_trend: **[Playground Series S3E10](https://github.com/mateuszk098/kaggle_notebooks/tree/master/playground_series_s3e10) - See description here: [Playground Series S3E10](https://www.kaggle.com/competitions/playground-series-s3e10)**
 
+:chart_with_upwards_trend: **[Playground Series S3E12](https://github.com/mateuszk098/kaggle_notebooks/tree/master/playground_series_s3e12) - See description here: [Playground Series S3E12](https://www.kaggle.com/competitions/playground-series-s3e12)**
+
 :chart_with_upwards_trend: **[Spaceship Titanic](https://github.com/mateuszk098/kaggle_notebooks/tree/master/spaceship_titanic) - See description here: [Spaceship Titanic](https://www.kaggle.com/competitions/spaceship-titanic)**
 
 :chart_with_upwards_trend: **[Titanic](https://github.com/mateuszk098/kaggle_notebooks/tree/master/titanic) - See description here: [Titanic](https://www.kaggle.com/competitions/titanic)**
+
+:chart_with_upwards_trend: **[Weather Forecast](https://github.com/mateuszk098/kaggle_notebooks/tree/master/weather_forecast) - Individual Project**
