@@ -1,25 +1,23 @@
 import os
 import shutil
-import warnings
 import subprocess
-from collections import defaultdict
-from collections import namedtuple
+import warnings
+from collections import defaultdict, namedtuple
 from copy import copy
 from functools import partial
-from itertools import product
-from itertools import combinations
+from itertools import combinations, product
 from pathlib import Path
+from time import strftime
 
 import numpy as np
 import pandas as pd
-import scipy.stats as stats
 import plotly.express as px
-import plotly.graph_objects as go
 import plotly.figure_factory as ff
-from plotly.subplots import make_subplots
-from colorama import Fore
-from colorama import Style
+import plotly.graph_objects as go
+import scipy.stats as stats
+from colorama import Fore, Style
 from IPython.core.display import HTML
+from plotly.subplots import make_subplots
 
 ON_KAGGLE = os.getenv("KAGGLE_KERNEL_RUN_TYPE") is not None
 
@@ -70,3 +68,16 @@ def download_competition_from_kaggle(competition):
         Path("data").mkdir(parents=True, exist_ok=True)
         shutil.unpack_archive(competition + ".zip", "data")
         shutil.move(competition + ".zip", "data")
+
+
+# Html `code` block highlight. Must be included at the end of all imports!
+HTML(
+    """
+<style>
+code {
+    background: rgba(42, 53, 125, 0.10) !important;
+    border-radius: 4px !important;
+}
+</style>
+"""
+)
