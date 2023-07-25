@@ -104,6 +104,9 @@ code {
     background: rgba(42, 53, 125, 0.10) !important;
     border-radius: 4px !important;
 }
+a {
+    color: rgba(123, 171, 237, 1.0) !important;
+}
 </style>
 """
 )
