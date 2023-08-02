@@ -1,7 +1,9 @@
+import glob
 import os
 import shutil
 import subprocess
 import warnings
+from array import array
 from collections import defaultdict, namedtuple
 from copy import copy
 from functools import partial
@@ -38,11 +40,11 @@ CYAN = Style.BRIGHT + Fore.CYAN
 RESET = Style.RESET_ALL
 
 FONT_COLOR = "#010D36"
-BACKGROUND_COLOR = "#F6F5F5"
+BACKGROUND_COLOR = "#FFFCFA"
 
 CELL_HOVER = {  # for row hover use <tr> instead of <td>
     "selector": "td:hover",
-    "props": "background-color: #F6F5F5",
+    "props": "background-color: #FFFCFA",
 }
 TEXT_HIGHLIGHT = {
     "selector": "td",
@@ -60,24 +62,21 @@ DF_STYLE = (INDEX_NAMES, HEADERS, TEXT_HIGHLIGHT)
 DF_CMAP = sns.light_palette("#D4D0A9", as_cmap=True)
 
 # Utility functions.
-def download_dataset_from_kaggle(user, dataset, directory):
-    command = "kaggle datasets download -d "
-    filepath = directory / (dataset + ".zip")
-    if not filepath.is_file():
-        subprocess.run((command + user + "/" + dataset).split())
-        filepath.parent.mkdir(parents=True, exist_ok=True)
-        shutil.unpack_archive(dataset + ".zip", "data")
-        shutil.move(dataset + ".zip", "data")
-
-
-def download_competition_from_kaggle(competition):
-    command = "kaggle competitions download -c "
-    filepath = Path("data/" + competition + ".zip")
-    if not filepath.is_file():
-        subprocess.run((command + competition).split())
-        Path("data").mkdir(parents=True, exist_ok=True)
-        shutil.unpack_archive(competition + ".zip", "data")
-        shutil.move(competition + ".zip", "data")
+def download_from_kaggle(expr: list[str], dir: Path | None = None) -> None:
+    if not dir:
+        dir = Path("data")
+    if not isinstance(dir, Path):
+        raise TypeError("The `dir` argument must be `Path` instance!")
+    match expr:
+        case ["kaggle", _, "download", *args] if args:
+            dir.parent.mkdir(parents=True, exist_ok=True)
+            filename = args[-1].split("/")[-1] + ".zip"
+            if not (dir / filename).is_file():
+                subprocess.run(expr)
+                shutil.unpack_archive(filename, dir)
+                shutil.move(filename, dir)
+        case _:
+            raise SyntaxError("Invalid expression!")
 
 
 def interpolate_color(color1, color2, t):
