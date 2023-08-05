@@ -62,19 +62,19 @@ DF_STYLE = (INDEX_NAMES, HEADERS, TEXT_HIGHLIGHT)
 DF_CMAP = sns.light_palette("#D4D0A9", as_cmap=True)
 
 # Utility functions.
-def download_from_kaggle(expr: list[str], dir: Path | None = None) -> None:
-    if not dir:
-        dir = Path("data")
-    if not isinstance(dir, Path):
+def download_from_kaggle(expr: list[str], directory: Path | None = None) -> None:
+    if not directory:
+        directory = Path("data")
+    if not isinstance(directory, Path):
         raise TypeError("The `dir` argument must be `Path` instance!")
     match expr:
         case ["kaggle", _, "download", *args] if args:
-            dir.parent.mkdir(parents=True, exist_ok=True)
+            directory.parent.mkdir(parents=True, exist_ok=True)
             filename = args[-1].split("/")[-1] + ".zip"
-            if not (dir / filename).is_file():
+            if not (directory / filename).is_file():
                 subprocess.run(expr)
-                shutil.unpack_archive(filename, dir)
-                shutil.move(filename, dir)
+                shutil.unpack_archive(filename, directory)
+                shutil.move(filename, directory)
         case _:
             raise SyntaxError("Invalid expression!")
 
