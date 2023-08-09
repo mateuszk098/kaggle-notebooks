@@ -26,6 +26,7 @@ import plotly.graph_objects as go
 import scipy.stats as stats
 import seaborn as sns
 import shap
+import swifter
 from colorama import Fore, Style
 from IPython.core.display import HTML, display_html
 from plotly.subplots import make_subplots
@@ -66,7 +67,7 @@ def download_from_kaggle(expr: list[str], directory: Path | None = None) -> None
     if not directory:
         directory = Path("data")
     if not isinstance(directory, Path):
-        raise TypeError("The `dir` argument must be `Path` instance!")
+        raise TypeError("The `directory` argument must be `Path` instance!")
     match expr:
         case ["kaggle", _, "download", *args] if args:
             directory.parent.mkdir(parents=True, exist_ok=True)
