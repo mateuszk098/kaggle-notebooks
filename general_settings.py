@@ -64,7 +64,7 @@ DF_CMAP = sns.light_palette("#D4D0A9", as_cmap=True)
 
 # Utility functions.
 def download_from_kaggle(expr: list[str], directory: Path | None = None) -> None:
-    if not directory:
+    if directory is None:
         directory = Path("data")
     if not isinstance(directory, Path):
         raise TypeError("The `directory` argument must be `Path` instance!")
