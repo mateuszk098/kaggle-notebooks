@@ -2,18 +2,15 @@ import glob
 import os
 import shutil
 import subprocess
+import sys
 import warnings
 from array import array
 from collections import defaultdict, namedtuple
 from copy import copy
-from functools import partial
+from functools import partial, singledispatch
 from itertools import chain, combinations, product
 from pathlib import Path
 from time import strftime
-
-ON_KAGGLE = os.getenv("KAGGLE_KERNEL_RUN_TYPE") is not None
-if ON_KAGGLE:
-    warnings.filterwarnings("ignore")
 
 import joblib
 import matplotlib.pyplot as plt
@@ -26,12 +23,13 @@ import plotly.graph_objects as go
 import scipy.stats as stats
 import seaborn as sns
 import shap
-import swifter
 from colorama import Fore, Style
 from IPython.core.display import HTML, display_html
 from plotly.subplots import make_subplots
 from scipy.cluster.hierarchy import linkage
 from scipy.spatial.distance import squareform
+
+ON_KAGGLE = os.getenv("KAGGLE_KERNEL_RUN_TYPE") is not None
 
 # Colorama settings.
 CLR = (Style.BRIGHT + Fore.BLACK) if ON_KAGGLE else (Style.BRIGHT + Fore.WHITE)
@@ -63,7 +61,7 @@ DF_STYLE = (INDEX_NAMES, HEADERS, TEXT_HIGHLIGHT)
 DF_CMAP = sns.light_palette("#D4D0A9", as_cmap=True)
 
 # Utility functions.
-def download_from_kaggle(expr: list[str], directory: Path | None = None) -> None:
+def download_from_kaggle(expr: list[str], directory: Path | None = None, /) -> None:
     if directory is None:
         directory = Path("data")
     if not isinstance(directory, Path):
@@ -80,18 +78,18 @@ def download_from_kaggle(expr: list[str], directory: Path | None = None) -> None
             raise SyntaxError("Invalid expression!")
 
 
-def interpolate_color(color1, color2, t):
-    r1, g1, b1 = int(color1[1:3], 16), int(color1[3:5], 16), int(color1[5:7], 16)
-    r2, g2, b2 = int(color2[1:3], 16), int(color2[3:5], 16), int(color2[5:7], 16)
-    r = int(r1 + (r2 - r1) * t)
-    g = int(g1 + (g2 - g1) * t)
-    b = int(b1 + (b2 - b1) * t)
-    return f"#{r:02X}{g:02X}{b:02X}"
-
-
-def get_interpolated_colors(color1, color2, num_colors=2):
+def get_interpolated_colors(color1: str, color2: str, /, num_colors: int = 2) -> list[str]:
     """Return `num_colors` interpolated beetwen `color1` and `color2`.
     Arguments need to be HEX."""
+
+    def interpolate_color(color1, color2, t) -> str:
+        r1, g1, b1 = int(color1[1:3], 16), int(color1[3:5], 16), int(color1[5:7], 16)
+        r2, g2, b2 = int(color2[1:3], 16), int(color2[3:5], 16), int(color2[5:7], 16)
+        r = int(r1 + (r2 - r1) * t)
+        g = int(g1 + (g2 - g1) * t)
+        b = int(b1 + (b2 - b1) * t)
+        return f"#{r:02X}{g:02X}{b:02X}"
+
     num_colors = num_colors + 2
     return [interpolate_color(color1, color2, i / (num_colors - 1)) for i in range(num_colors)]
 
@@ -106,6 +104,16 @@ code {
 }
 a {
     color: rgba(123, 171, 237, 1.0) !important;
+}
+ol.numbered-list {
+  counter-reset: item;
+}
+ol.numbered-list li {
+  display: block;
+}
+ol.numbered-list li:before {
+  content: counters(item, '.') '. ';
+  counter-increment: item;
 }
 </style>
 """
