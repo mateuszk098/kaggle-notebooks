@@ -41,6 +41,7 @@ cmaes==0.9.1
 colorama==0.4.6
 colorlog==6.7.0
 commonmark==0.9.1
+contourpy==1.1.0
 cryptography==37.0.4
 cssselect2==0.7.0
 cx-Freeze==6.13.1
@@ -81,6 +82,7 @@ gym==0.26.2
 gym-notices==0.0.8
 h11==0.13.0
 h5py==3.7.0
+haversine==2.8.0
 holidays==0.29
 huggingface-hub==0.14.1
 idna==3.3
@@ -132,7 +134,7 @@ lxml==4.9.1
 Mako==1.2.4
 Markdown==3.4.1
 MarkupSafe==2.1.1
-matplotlib==3.5.2
+matplotlib==3.7.3
 matplotlib-inline==0.1.3
 mccabe==0.7.0
 miceforest==5.6.3
@@ -162,7 +164,7 @@ opt-einsum==3.3.0
 optuna==3.1.0
 outcome==1.2.0
 packaging==21.3
-pandas==1.5.3
+pandas==2.0.3
 pandas-datareader==0.10.0
 pandoc==2.3
 pandocfilters==1.5.0
@@ -179,7 +181,8 @@ platformdirs==2.5.2
 plotly==5.14.1
 plumbum==1.8.0
 ply==3.11
-prince==0.9.0
+polars==0.18.13
+prince==0.12.1
 progressbar2==4.2.0
 prometheus-client==0.15.0
 promise==2.3
@@ -233,10 +236,10 @@ requests-oauthlib==1.3.1
 responses==0.18.0
 rich==12.5.1
 rsa==4.9
-scikit-learn==1.2.1
+scikit-learn==1.2.2
 scikit-optimize==0.9.0
 scipy==1.10.1
-seaborn==0.11.2
+seaborn==0.12.2
 selenium==4.3.0
 Send2Trash==1.8.0
 shap==0.42.0

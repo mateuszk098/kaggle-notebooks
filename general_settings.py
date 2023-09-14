@@ -38,7 +38,8 @@ BLUE = Style.BRIGHT + Fore.BLUE
 CYAN = Style.BRIGHT + Fore.CYAN
 RESET = Style.RESET_ALL
 
-FONT_COLOR = "#010D36"
+# Data Frame color theme.
+FONT_COLOR = "#4A4B52"
 BACKGROUND_COLOR = "#FFFCFA"
 
 CELL_HOVER = {  # for row hover use <tr> instead of <td>
@@ -47,18 +48,18 @@ CELL_HOVER = {  # for row hover use <tr> instead of <td>
 }
 TEXT_HIGHLIGHT = {
     "selector": "td",
-    "props": "color: #FF2079; font-weight: bold",
+    "props": "color: #4A4B52; font-weight: bold",
 }
 INDEX_NAMES = {
     "selector": ".index_name",
-    "props": "font-style: italic; background-color: #010D36; color: #F2F2F0;",
+    "props": "font-weight: normal; background-color: #FFFCFA; color: #4A4B52;",
 }
 HEADERS = {
     "selector": "th:not(.index_name)",
-    "props": "font-style: italic; background-color: #010D36; color: #F2F2F0;",
+    "props": "font-weight: normal; background-color: #FFFCFA; color: #4A4B52;",
 }
 DF_STYLE = (INDEX_NAMES, HEADERS, TEXT_HIGHLIGHT)
-DF_CMAP = sns.light_palette("#D4D0A9", as_cmap=True)
+DF_CMAP = sns.light_palette("#BAB8B8", as_cmap=True)
 
 # Utility functions.
 def download_from_kaggle(expr: list[str], directory: Path | None = None, /) -> None:
@@ -94,7 +95,7 @@ def get_interpolated_colors(color1: str, color2: str, /, num_colors: int = 2) ->
     return [interpolate_color(color1, color2, i / (num_colors - 1)) for i in range(num_colors)]
 
 
-# Html `code` block highlight. Must be included at the end of all imports!
+# Html highlight. Must be included at the end of all imports!
 HTML(
     """
 <style>
