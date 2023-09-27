@@ -71,13 +71,19 @@ fsspec==2023.4.0
 funcsigs==1.0.2
 future==0.18.2
 gast==0.4.0
+google-api-core==2.11.1
 google-auth==2.15.0
 google-auth-oauthlib==0.4.6
+google-cloud-bigquery==3.11.4
+google-cloud-core==2.3.3
+google-crc32c==1.5.0
 google-pasta==0.2.0
+google-resumable-media==2.6.0
 googleapis-common-protos==1.58.0
 graphviz==0.20.1
 greenlet==2.0.2
-grpcio==1.51.1
+grpcio==1.58.0
+grpcio-status==1.44.0
 gym==0.26.2
 gym-notices==0.0.8
 h11==0.13.0
@@ -127,7 +133,7 @@ lesscpy==0.15.1
 libclang==14.0.6
 lief==0.12.3
 lifelines==0.27.7
-lightgbm==3.3.5
+lightgbm==4.1.0
 llvmlite==0.38.1
 locket==1.0.0
 lxml==4.9.1
@@ -187,6 +193,7 @@ progressbar2==4.2.0
 prometheus-client==0.15.0
 promise==2.3
 prompt-toolkit==3.0.30
+proto-plus==1.22.3
 protobuf==3.19.6
 psutil==5.9.1
 pure-eval==0.2.2
@@ -242,7 +249,7 @@ scipy==1.10.1
 seaborn==0.12.2
 selenium==4.3.0
 Send2Trash==1.8.0
-shap==0.42.0
+shap==0.42.1
 shutilwhich==1.1.0
 six==1.16.0
 slicer==0.0.7

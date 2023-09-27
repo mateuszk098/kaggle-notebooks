@@ -4,3 +4,4 @@ from keras import layers
 from tensorflow import keras
 
 K = keras.backend
+AUTO = tf.data.AUTOTUNE
