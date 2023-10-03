@@ -23,14 +23,22 @@ import plotly.graph_objects as go
 import scipy.stats as stats
 import seaborn as sns
 import shap
+import tensorflow as tf
+import tensorflow_datasets as tfds
 from colorama import Fore, Style
 from IPython.core.display import HTML, display_html
+from keras import layers
 from plotly.subplots import make_subplots
 from scipy.cluster.hierarchy import linkage
 from scipy.spatial.distance import squareform
 from sklearn.base import BaseEstimator, OneToOneFeatureMixin, TransformerMixin
+from tensorflow import keras
 
+# Environment
 ON_KAGGLE = os.getenv("KAGGLE_KERNEL_RUN_TYPE") is not None
+
+K = keras.backend
+AUTOTUNE = tf.data.AUTOTUNE
 
 # Colorama settings.
 CLR = (Style.BRIGHT + Fore.BLACK) if ON_KAGGLE else (Style.BRIGHT + Fore.WHITE)
@@ -63,6 +71,27 @@ HEADERS = {
 DF_STYLE = (INDEX_NAMES, HEADERS, TEXT_HIGHLIGHT)
 DF_CMAP = sns.light_palette("#BAB8B8", as_cmap=True)
 
+HTML_STYLE = """
+    <style>
+    code {
+        background: rgba(42, 53, 125, 0.10) !important;
+        border-radius: 4px !important;
+    }
+    a {
+        color: rgba(123, 171, 237, 1.0) !important;
+    }
+    ol.numbered-list {
+    counter-reset: item;
+    }
+    ol.numbered-list li {
+    display: block;
+    }
+    ol.numbered-list li:before {
+    content: counters(item, '.') '. ';
+    counter-increment: item;
+    }
+    </style>
+"""
 
 # Utility functions.
 def download_from_kaggle(expr, directory=None, /) -> None:
@@ -139,30 +168,30 @@ def missing_unique_vals_summary(frame, /):
     )
 
 
-def check_categories_alignment(train, test, /):
+def check_categories_alignment(frame1, frame2, /):
     print(CLR + "The same categories in training and test datasets?\n")
-    cat_features = test.select_dtypes(include="object").columns.to_list()
+    cat_features = frame2.select_dtypes(include="object").columns.to_list()
 
     for feature in cat_features:
-        train_unique = set(train[feature].unique())
-        test_unique = set(test[feature].unique())
-        same = np.all(train_unique == test_unique)
+        frame1_unique = set(frame1[feature].unique())
+        frame2_unique = set(frame2[feature].unique())
+        same = np.all(frame1_unique == frame2_unique)
         print(CLR + f"{feature:25s}", BLUE + f"{same}")
 
 
-def get_n_rows_and_axes(n_features, n_cols):
+def get_n_rows_and_axes(n_features, n_cols, /):
     n_rows = int(np.ceil(n_features / n_cols))
     current_col = range(1, n_cols + 1)
     current_row = range(1, n_rows + 1)
     return n_rows, list(product(current_row, current_col))
 
 
-def get_distributions_figure(features, train, test, /, **kwargs):
+def get_distributions_figure(feature_names, frame1, frame2, /, **kwargs):
     histnorm = kwargs.get("histnorm", "probability density")
     train_color = kwargs.get("train_color", "blue")
     test_color = kwargs.get("test_color", "red")
     n_cols = kwargs.get("n_cols", 3)
-    n_rows, axes = get_n_rows_and_axes(len(features), n_cols)
+    n_rows, axes = get_n_rows_and_axes(len(feature_names), n_cols)
 
     fig = make_subplots(
         rows=n_rows,
@@ -173,11 +202,11 @@ def get_distributions_figure(features, train, test, /, **kwargs):
     )
     fig.update_annotations(font_size=kwargs.get("annotations_font_size", 14))
 
-    for frame, color, name in zip((train, test), (train_color, test_color), ("Train", "Test")):
+    for frame, color, name in zip((frame1, frame2), (train_color, test_color), ("Train", "Test")):
         if frame is None:  # Test dataset may not exist.
             break
 
-        for k, (var, (row, col)) in enumerate(zip(features, axes), start=1):
+        for k, (var, (row, col)) in enumerate(zip(feature_names, axes), start=1):
             # density, bins = np.histogram(frame[var].dropna(), density=True)
             fig.add_histogram(
                 x=frame[var],
@@ -213,91 +242,5 @@ def get_distributions_figure(features, train, test, /, **kwargs):
     return fig
 
 
-class Chi2ContingencyImputer(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
-    def __init__(self, cols_to_ignore=None):
-        self.cols_to_ignore = cols_to_ignore
-
-    def fit(self, X, y=None):
-        cat_features = X.select_dtypes(include="object").columns.tolist()
-        if self.cols_to_ignore is not None:
-            cat_features = np.setdiff1d(cat_features, self.cols_to_ignore)
-
-        related_vars = self._calculate_most_related_variables(X, cat_features)
-        all_modes = self._get_all_modes(X, related_vars)
-
-        self.related_vars_ = related_vars
-        self.all_modes_ = all_modes
-        return self
-
-    def transform(self, X, y=None):
-        Xc = X.copy()
-
-        for var1, var2, modes in self.all_modes_:
-            # On var2 because we grouped by var2 earlier in `_get_all_modes()`.
-            Xc = Xc.merge(modes, on=var2, how="left")  # type: ignore
-            Xc[var1] = Xc[var1].fillna(Xc[f"Mode_{var1}"])
-            Xc = Xc.drop(f"Mode_{var1}", axis=1)
-
-        Xc.index = X.index
-        return Xc
-
-    def _calculate_most_related_variables(self, X, cat_features):
-        results = []
-        # Calculate whether there is relation between categorical feature pairs.
-        for var1, var2 in list(product(cat_features, cat_features)):
-            if var1 == var2:
-                continue
-            contingency = pd.crosstab(X[var1], X[var2])
-            result = stats.chi2_contingency(contingency)
-            pvalue = result.pvalue  # type: ignore
-            results.append((var1, var2, pvalue))
-
-        # For each feature, determine with which other one, there is the strongest relation.
-        related_vars = pd.DataFrame(results, columns=["var1", "var2", "pvalue"])
-        min_ids = related_vars.groupby("var1")["pvalue"].idxmin()  # Determine minimal p-value.
-        return related_vars.iloc[min_ids, :2].to_numpy()  # Most related pairs as 2D array.
-
-    def _get_all_modes(self, X, related_vars):
-        all_modes = []
-        # For each most related pair, group one feature and determine
-        # the most frequent value of the second feature in that group.
-        for var1, var2 in related_vars:  # type: ignore
-            all_modes.append(
-                (
-                    var1,
-                    var2,
-                    (
-                        X.groupby(var2, dropna=False)[var1]  # type: ignore
-                        .agg(lambda g: g.mode().iloc[0] if not g.mode().empty else None)
-                        .reset_index()
-                        .rename(columns={var1: f"Mode_{var1}"})  # Avoid the same name.
-                    ),
-                )
-            )
-        return all_modes  # Feature pairs with series mapper.
-
-
 # Html highlight. Must be included at the end of all imports!
-HTML(
-    """
-<style>
-code {
-    background: rgba(42, 53, 125, 0.10) !important;
-    border-radius: 4px !important;
-}
-a {
-    color: rgba(123, 171, 237, 1.0) !important;
-}
-ol.numbered-list {
-  counter-reset: item;
-}
-ol.numbered-list li {
-  display: block;
-}
-ol.numbered-list li:before {
-  content: counters(item, '.') '. ';
-  counter-increment: item;
-}
-</style>
-"""
-)
+HTML(HTML_STYLE)
