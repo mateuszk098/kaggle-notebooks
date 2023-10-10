@@ -32,7 +32,7 @@ class GeneralizedSwish(keras.layers.Layer):
         }
 
 
-class MaxDepthPool2D(layers.Layer):
+class MaxDepthPool2D(keras.layers.Layer):
     def __init__(self, pool_size=2, **kwargs):
         super().__init__(**kwargs)
         self.pool_size = pool_size
@@ -49,19 +49,19 @@ class MaxDepthPool2D(layers.Layer):
         }
 
 
-class SEUnit(layers.Layer):
+class SEUnit(keras.layers.Layer):
     def __init__(self, squeeze_factor=16, hidden_activation="relu", **kwargs):
         super().__init__(**kwargs)
         self.squeeze_factor = squeeze_factor
         self.hidden_activation = keras.activations.get(hidden_activation)
 
     def build(self, input_shape):
-        n_units_dense = input_shape[-1] // self.squeeze_factor
+        n_units_hidden = input_shape[-1] // self.squeeze_factor
         n_units_out = input_shape[-1]
         self.feed_forward = [
             # keepdims=True, because it must be broadcastable for multiplication.
             layers.GlobalAvgPool2D(keepdims=True),
-            layers.Dense(n_units_dense, self.hidden_activation, kernel_initializer="he_normal"),
+            layers.Dense(n_units_hidden, self.hidden_activation, kernel_initializer="he_normal"),
             layers.Dense(n_units_out, "sigmoid"),
         ]
         super().build(input_shape)
@@ -79,7 +79,7 @@ class SEUnit(layers.Layer):
         }
 
 
-class SEResidualUnit(layers.Layer):
+class SEResidualUnit(keras.layers.Layer):
     def __init__(
         self, filters, kernel_size, strides=1, se_active=False, squeeze_factor=16, **kwargs
     ):
@@ -91,7 +91,7 @@ class SEResidualUnit(layers.Layer):
         self.squeeze_factor = squeeze_factor
         self.activation = GeneralizedSwish()
         self.se_unit = SEUnit(squeeze_factor)
-
+        self.shortcut_connection = []
         self.feed_forward = [
             DefaultConv2D(filters=filters, kernel_size=kernel_size, strides=strides),
             layers.BatchNormalization(),
@@ -100,12 +100,13 @@ class SEResidualUnit(layers.Layer):
             layers.BatchNormalization(),
         ]
 
-        self.shortcut_connection = []
-        if strides > 1:
+    def build(self, input_shape):
+        if not self.filters == input_shape[-1] or self.strides > 1:
             self.shortcut_connection = [
-                DefaultConv2D(filters=filters, kernel_size=1, strides=strides),
+                DefaultConv2D(filters=self.filters, kernel_size=1, strides=self.strides),
                 layers.BatchNormalization(),
             ]
+        super().build(input_shape)
 
     def call(self, inputs):
         X, shortcut_X = inputs, inputs
