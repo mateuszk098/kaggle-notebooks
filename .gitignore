@@ -1,4 +1,6 @@
 # Custom files/directories
+*.tfrecord
+my_logs/
 proto/
 data/
 datasets/

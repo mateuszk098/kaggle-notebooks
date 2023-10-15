@@ -12,6 +12,11 @@ from itertools import chain, combinations, product
 from pathlib import Path
 from time import strftime
 
+# Environment
+ON_KAGGLE = os.getenv("KAGGLE_KERNEL_RUN_TYPE") is not None
+if ON_KAGGLE:
+    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
 import joblib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -33,9 +38,6 @@ from scipy.cluster.hierarchy import linkage
 from scipy.spatial.distance import squareform
 from sklearn.base import BaseEstimator, OneToOneFeatureMixin, TransformerMixin
 from tensorflow import keras
-
-# Environment
-ON_KAGGLE = os.getenv("KAGGLE_KERNEL_RUN_TYPE") is not None
 
 K = keras.backend
 AUTOTUNE = tf.data.AUTOTUNE
