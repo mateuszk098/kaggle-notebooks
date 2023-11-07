@@ -12,11 +12,6 @@ from itertools import chain, combinations, product
 from pathlib import Path
 from time import strftime
 
-# Environment
-ON_KAGGLE = os.getenv("KAGGLE_KERNEL_RUN_TYPE") is not None
-if ON_KAGGLE:
-    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-
 import joblib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -25,54 +20,69 @@ import pandas as pd
 import plotly.express as px
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
+import plotly.io as pio
 import scipy.stats as stats
 import seaborn as sns
 import shap
-import tensorflow as tf
-import tensorflow_datasets as tfds
 from colorama import Fore, Style
 from IPython.core.display import HTML, display_html
-from keras import layers
 from plotly.subplots import make_subplots
 from scipy.cluster.hierarchy import linkage
 from scipy.spatial.distance import squareform
 from sklearn.base import BaseEstimator, OneToOneFeatureMixin, TransformerMixin
-from tensorflow import keras
 
-K = keras.backend
-AUTOTUNE = tf.data.AUTOTUNE
+# Environment
+ON_KAGGLE = os.getenv("KAGGLE_KERNEL_RUN_TYPE") is not None
 
 # Colorama settings.
 CLR = (Style.BRIGHT + Fore.BLACK) if ON_KAGGLE else (Style.BRIGHT + Fore.WHITE)
 RED = Style.BRIGHT + Fore.RED
 BLUE = Style.BRIGHT + Fore.BLUE
 CYAN = Style.BRIGHT + Fore.CYAN
+MAGENTA = Style.BRIGHT + Fore.MAGENTA
 RESET = Style.RESET_ALL
 
-# Plots colors.
+# Data Frame and Plotly colors.
 FONT_COLOR = "#4A4B52"
 BACKGROUND_COLOR = "#FFFCFA"
+GRADIENT_COLOR = "#BAB8B8"
 
-# Data Frame color theme.
+# Plotly theme.
+pio.templates["minimalist"] = go.layout.Template(
+    layout=go.Layout(
+        font_color=FONT_COLOR,
+        title_font_size=18,
+        plot_bgcolor=BACKGROUND_COLOR,
+        paper_bgcolor=BACKGROUND_COLOR,
+        xaxis_showgrid=False,
+        yaxis_showgrid=False,
+        width=840,
+        height=540,
+    )
+)
+pio.templates.default = "plotly+minimalist"
+
+# Data Frame theme.
 CELL_HOVER = {  # for row hover use <tr> instead of <td>
     "selector": "td:hover",
-    "props": "background-color: #FFFCFA",
+    "props": f"background-color: {BACKGROUND_COLOR}",
 }
 TEXT_HIGHLIGHT = {
     "selector": "td",
-    "props": "color: #4A4B52; font-weight: bold",
+    "props": f"color: {FONT_COLOR}; font-weight: bold",
 }
 INDEX_NAMES = {
     "selector": ".index_name",
-    "props": "font-weight: normal; background-color: #FFFCFA; color: #4A4B52;",
+    "props": f"font-weight: normal; background-color: {BACKGROUND_COLOR}; color: {FONT_COLOR};",
 }
 HEADERS = {
     "selector": "th:not(.index_name)",
-    "props": "font-weight: normal; background-color: #FFFCFA; color: #4A4B52;",
+    "props": f"font-weight: normal; background-color: {BACKGROUND_COLOR}; color: {FONT_COLOR};",
 }
 DF_STYLE = (INDEX_NAMES, HEADERS, TEXT_HIGHLIGHT)
-DF_CMAP = sns.light_palette("#BAB8B8", as_cmap=True)
+DF_CMAP = sns.light_palette(GRADIENT_COLOR, as_cmap=True)
 
+# Html style for table of contents, code highlight and url.
 HTML_STYLE = """
     <style>
     code {
@@ -83,25 +93,38 @@ HTML_STYLE = """
         color: rgba(123, 171, 237, 1.0) !important;
     }
     ol.numbered-list {
-    counter-reset: item;
+        counter-reset: item;
     }
     ol.numbered-list li {
-    display: block;
+        display: block;
     }
     ol.numbered-list li:before {
-    content: counters(item, '.') '. ';
-    counter-increment: item;
+        content: counters(item, '.') '. ';
+        counter-increment: item;
     }
     </style>
 """
 
+
 # Utility functions.
-def download_from_kaggle(expr, directory=None, /) -> None:
+def download_from_kaggle(expr, /, directory=None):
+    """Download all files from the Kaggle competition/dataset.
+
+    Args:
+        expr: Match expression to be used by kaggle API, e.g.
+            "kaggle competitions download -c competition" or
+            "kaggle datasets download -d user/dataset".
+        directory: `Path` instance directory where to save files. None by default,
+        which means that files will be downloaded to `data` in the current directory.
+
+    Notes:
+        If the associated files already exists, then it does nothing.
+    """
     if directory is None:
         directory = Path("data")
     if not isinstance(directory, Path):
         raise TypeError("The `directory` argument must be `Path` instance!")
-    match expr:
+    match expr.split():
         case ["kaggle", _, "download", *args] if args:
             directory.parent.mkdir(parents=True, exist_ok=True)
             filename = args[-1].split("/")[-1] + ".zip"
@@ -113,9 +136,16 @@ def download_from_kaggle(expr, directory=None, /) -> None:
             raise SyntaxError("Invalid expression!")
 
 
-def get_interpolated_colors(color1, color2, /, num_colors=2):
-    """Return `num_colors` interpolated beetwen `color1` and `color2`.
-    Arguments need to be HEX."""
+def get_interpolated_colors(color1, color2, /, n_colors=1):
+    """Return `n_colors` colors in HEX format, interpolated beetwen `color1` and `color2`.
+
+    Args:
+        color1: Initial HEX color to be interpolated from.
+        color2: Final HEX color to be interpolated from.
+
+    Returns:
+        colors: List of colors interpolated between `color1` and `color2`.
+    """
 
     def interpolate(color1, color2, t):
         r1, g1, b1 = int(color1[1:3], 16), int(color1[3:5], 16), int(color1[5:7], 16)
@@ -125,17 +155,23 @@ def get_interpolated_colors(color1, color2, /, num_colors=2):
         b = int(b1 + (b2 - b1) * t)
         return f"#{r:02X}{g:02X}{b:02X}"
 
-    return [interpolate(color1, color2, k / (num_colors + 1)) for k in range(1, num_colors + 1)]
+    return [
+        interpolate(color1, color2, k / (n_colors + 1)) for k in range(1, n_colors + 1)
+    ]
 
 
-def get_pretty_frame(frame, /, gradient=False, formatter=None, precision=3, repr_html=False):
+def get_pretty_frame(
+    frame, /, gradient=False, formatter=None, precision=3, repr_html=False
+):
     stylish_frame = frame.style.set_table_styles(DF_STYLE).format(
         formatter=formatter, precision=precision
     )
     if gradient:
         stylish_frame = stylish_frame.background_gradient(DF_CMAP)  # type: ignore
     if repr_html:
-        stylish_frame = stylish_frame.set_table_attributes("style='display:inline'")._repr_html_()
+        stylish_frame = stylish_frame.set_table_attributes(
+            "style='display:inline'"
+        )._repr_html_()
     return stylish_frame
 
 
@@ -147,7 +183,7 @@ def numeric_descr(frame, /):
     )
 
 
-def missing_unique_vals_summary(frame, /):
+def frame_summary(frame, /):
     missing_vals = frame.isna().sum()
     missing_vals_ratio = missing_vals / len(frame)
     unique_vals = frame.apply(lambda col: len(col.unique()))
@@ -170,7 +206,7 @@ def missing_unique_vals_summary(frame, /):
     )
 
 
-def check_categories_alignment(frame1, frame2, /):
+def check_categories_alignment(frame1, frame2, /, out_color=BLUE):
     print(CLR + "The same categories in training and test datasets?\n")
     cat_features = frame2.select_dtypes(include="object").columns.to_list()
 
@@ -178,16 +214,17 @@ def check_categories_alignment(frame1, frame2, /):
         frame1_unique = set(frame1[feature].unique())
         frame2_unique = set(frame2[feature].unique())
         same = np.all(frame1_unique == frame2_unique)
-        print(CLR + f"{feature:25s}", BLUE + f"{same}")
+        print(CLR + f"{feature:25s}", out_color + f"{same}")
 
 
-def get_n_rows_and_axes(n_features, n_cols, /):
+def get_n_rows_and_axes(n_features, n_cols, /, start_at=1):
     n_rows = int(np.ceil(n_features / n_cols))
-    current_col = range(1, n_cols + 1)
-    current_row = range(1, n_rows + 1)
-    return n_rows, list(product(current_row, current_col))
+    current_col = range(start_at, n_cols + start_at)
+    current_row = range(start_at, n_rows + start_at)
+    return n_rows, product(current_row, current_col)
 
 
+# TODO: This shouldn't be implemented in the config?
 def get_distributions_figure(feature_names, frame1, frame2, /, **kwargs):
     histnorm = kwargs.get("histnorm", "probability density")
     train_color = kwargs.get("train_color", "blue")
@@ -204,7 +241,9 @@ def get_distributions_figure(feature_names, frame1, frame2, /, **kwargs):
     )
     fig.update_annotations(font_size=kwargs.get("annotations_font_size", 14))
 
-    for frame, color, name in zip((frame1, frame2), (train_color, test_color), ("Train", "Test")):
+    for frame, color, name in zip(
+        (frame1, frame2), (train_color, test_color), ("Train", "Test")
+    ):
         if frame is None:  # Test dataset may not exist.
             break
 
@@ -225,7 +264,10 @@ def get_distributions_figure(feature_names, frame1, frame2, /, **kwargs):
             fig.update_xaxes(title_text=var, row=row, col=col)
 
     fig.update_xaxes(
-        tickfont_size=8, showgrid=False, titlefont_size=8, titlefont_family="Arial Black"
+        tickfont_size=8,
+        showgrid=False,
+        titlefont_size=8,
+        titlefont_family="Arial Black",
     )
     fig.update_yaxes(tickfont_size=8, showgrid=False)
 
@@ -239,7 +281,9 @@ def get_distributions_figure(feature_names, frame1, frame2, /, **kwargs):
         paper_bgcolor=BACKGROUND_COLOR,
         bargap=kwargs.get("bargap", 0),
         bargroupgap=kwargs.get("bargroupgap", 0),
-        legend=dict(yanchor="bottom", xanchor="right", y=1, x=1, orientation="h", title=""),
+        legend=dict(
+            yanchor="bottom", xanchor="right", y=1, x=1, orientation="h", title=""
+        ),
     )
     return fig
 
