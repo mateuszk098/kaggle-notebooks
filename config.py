@@ -25,7 +25,7 @@ import scipy.stats as stats
 import seaborn as sns
 import shap
 from colorama import Fore, Style
-from IPython.core.display import HTML, display_html
+from IPython.core.display import HTML, Image, display_html
 from plotly.subplots import make_subplots
 from scipy.cluster.hierarchy import linkage
 from scipy.spatial.distance import squareform
@@ -47,7 +47,7 @@ FONT_COLOR = "#4A4B52"
 BACKGROUND_COLOR = "#FFFCFA"
 GRADIENT_COLOR = "#BAB8B8"
 
-# Plotly theme.
+# Set Plotly theme.
 pio.templates["minimalist"] = go.layout.Template(
     layout=go.Layout(
         font_color=FONT_COLOR,
@@ -62,7 +62,7 @@ pio.templates["minimalist"] = go.layout.Template(
 )
 pio.templates.default = "plotly+minimalist"
 
-# Data Frame theme.
+# Define Data Frame theme.
 CELL_HOVER = {  # for row hover use <tr> instead of <td>
     "selector": "td:hover",
     "props": f"background-color: {BACKGROUND_COLOR}",
@@ -107,31 +107,31 @@ HTML_STYLE = """
 
 
 # Utility functions.
-def download_from_kaggle(expr, /, directory=None):
+def download_from_kaggle(expr, /, data_dir=None):
     """Download all files from the Kaggle competition/dataset.
 
     Args:
         expr: Match expression to be used by kaggle API, e.g.
             "kaggle competitions download -c competition" or
             "kaggle datasets download -d user/dataset".
-        directory: `Path` instance directory where to save files. None by default,
+        data_dir: `Path` instance directory where to save files. None by default,
         which means that files will be downloaded to `data` in the current directory.
 
     Notes:
         If the associated files already exists, then it does nothing.
     """
-    if directory is None:
-        directory = Path("data")
-    if not isinstance(directory, Path):
-        raise TypeError("The `directory` argument must be `Path` instance!")
+    if data_dir is None:
+        data_dir = Path("data")
+    if not isinstance(data_dir, Path):
+        raise TypeError("The `data_dir` argument must be `Path` instance!")
     match expr.split():
         case ["kaggle", _, "download", *args] if args:
-            directory.parent.mkdir(parents=True, exist_ok=True)
+            data_dir.parent.mkdir(parents=True, exist_ok=True)
             filename = args[-1].split("/")[-1] + ".zip"
-            if not (directory / filename).is_file():
+            if not (data_dir / filename).is_file():
                 subprocess.run(expr)
-                shutil.unpack_archive(filename, directory)
-                shutil.move(filename, directory)
+                shutil.unpack_archive(filename, data_dir)
+                shutil.move(filename, data_dir)
         case _:
             raise SyntaxError("Invalid expression!")
 
@@ -215,6 +215,19 @@ def check_categories_alignment(frame1, frame2, /, out_color=BLUE):
         frame2_unique = set(frame2[feature].unique())
         same = np.all(frame1_unique == frame2_unique)
         print(CLR + f"{feature:25s}", out_color + f"{same}")
+
+
+def save_and_show_fig(fig, filename, /, img_dir=None, format="png"):
+    if img_dir is None:
+        img_dir = Path("images")
+    if not isinstance(img_dir, Path):
+        raise TypeError("The `img_dir` argument must be `Path` instance!")
+
+    img_dir.parent.mkdir(parents=True, exist_ok=True)
+    fig_path = img_dir / (filename + "." + format)
+    fig.write_image(fig_path)
+
+    return Image(fig.to_image(format=format))
 
 
 def get_n_rows_and_axes(n_features, n_cols, /, start_at=1):
