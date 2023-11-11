@@ -217,6 +217,14 @@ def check_categories_alignment(frame1, frame2, /, out_color=BLUE):
         print(CLR + f"{feature:25s}", out_color + f"{same}")
 
 
+def get_lower_triangular_frame(frame, /):
+    if not frame.shape[0] == frame.shape[1]:
+        raise ValueError(f"{type(frame)!r} is not square frame")
+    lower_triu = np.triu(np.ones_like(frame, dtype=bool))
+    frame = frame.mask(lower_triu)
+    return frame.dropna(axis="index", how="all").dropna(axis="columns", how="all")
+
+
 def save_and_show_fig(fig, filename, /, img_dir=None, format="png"):
     if img_dir is None:
         img_dir = Path("images")
