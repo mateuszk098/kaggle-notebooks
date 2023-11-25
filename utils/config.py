@@ -25,7 +25,7 @@ import scipy.stats as stats
 import seaborn as sns
 import shap
 from colorama import Fore, Style
-from IPython.core.display import HTML, Image, display_html
+from IPython.display import HTML, Image, display_html
 from plotly.subplots import make_subplots
 from scipy.cluster.hierarchy import linkage
 from scipy.spatial.distance import squareform
@@ -46,21 +46,48 @@ RESET = Style.RESET_ALL
 FONT_COLOR = "#4A4B52"
 BACKGROUND_COLOR = "#FFFCFA"
 GRADIENT_COLOR = "#BAB8B8"
+# Define as numpy array because it supports fancy indexing.
+COLOR_SCHEME = np.array(("#4A4B52", "#FCFCFC", "#E8BA91"))
+# Ticks size for plotly and matplotlib.
+TICKSIZE = 11
 
 # Set Plotly theme.
 pio.templates["minimalist"] = go.layout.Template(
     layout=go.Layout(
+        font_family="Open Sans",
         font_color=FONT_COLOR,
-        title_font_size=18,
+        title_font_size=20,
         plot_bgcolor=BACKGROUND_COLOR,
         paper_bgcolor=BACKGROUND_COLOR,
-        xaxis_showgrid=False,
-        yaxis_showgrid=False,
+        xaxis=dict(tickfont_size=TICKSIZE, titlefont_size=TICKSIZE, showgrid=False),
+        yaxis=dict(tickfont_size=TICKSIZE, titlefont_size=TICKSIZE, showgrid=False),
         width=840,
         height=540,
-    )
+        legend=dict(yanchor="bottom", xanchor="right", orientation="h", title=""),
+    ),
+    layout_colorway=COLOR_SCHEME,
 )
 pio.templates.default = "plotly+minimalist"
+
+MATPLOTLIB_THEME = {
+    "axes.labelcolor": FONT_COLOR,
+    "axes.labelsize": TICKSIZE,
+    "axes.facecolor": BACKGROUND_COLOR,
+    "axes.titlesize": 14,
+    "axes.grid": False,
+    "xtick.labelsize": TICKSIZE,
+    "xtick.color": FONT_COLOR,
+    "ytick.labelsize": TICKSIZE,
+    "ytick.color": FONT_COLOR,
+    "figure.facecolor": BACKGROUND_COLOR,
+    "figure.edgecolor": BACKGROUND_COLOR,
+    "figure.titlesize": 14,
+    "figure.dpi": 72,  # Locally Seaborn uses 72, meanwhile Kaggle 96.
+    "text.color": FONT_COLOR,
+    "font.size": TICKSIZE,
+    "font.family": "Serif",
+}
+sns.set_theme(rc=MATPLOTLIB_THEME)
 
 # Define Data Frame theme.
 CELL_HOVER = {  # for row hover use <tr> instead of <td>
@@ -114,19 +141,21 @@ def download_from_kaggle(expr, /, data_dir=None):
         expr: Match expression to be used by kaggle API, e.g.
             "kaggle competitions download -c competition" or
             "kaggle datasets download -d user/dataset".
-        data_dir: `Path` instance directory where to save files. None by default,
-        which means that files will be downloaded to `data` in the current directory.
+        data_dir: Optional. Directory path where to save files. Default to `None`,
+        which means that files will be downloaded to `data` directory.
 
     Notes:
         If the associated files already exists, then it does nothing.
     """
+
     if data_dir is None:
-        data_dir = Path("data")
-    if not isinstance(data_dir, Path):
-        raise TypeError("The `data_dir` argument must be `Path` instance!")
+        data_dir = Path("data/")
+    else:
+        data_dir = Path(data_dir)
+
     match expr.split():
         case ["kaggle", _, "download", *args] if args:
-            data_dir.parent.mkdir(parents=True, exist_ok=True)
+            data_dir.mkdir(parents=True, exist_ok=True)
             filename = args[-1].split("/")[-1] + ".zip"
             if not (data_dir / filename).is_file():
                 subprocess.run(expr)
@@ -142,6 +171,8 @@ def get_interpolated_colors(color1, color2, /, n_colors=1):
     Args:
         color1: Initial HEX color to be interpolated from.
         color2: Final HEX color to be interpolated from.
+        n_colors: Optional. Number of colors to be interpolated between `color1`
+            and `color2`. Default to 1.
 
     Returns:
         colors: List of colors interpolated between `color1` and `color2`.
@@ -155,23 +186,15 @@ def get_interpolated_colors(color1, color2, /, n_colors=1):
         b = int(b1 + (b2 - b1) * t)
         return f"#{r:02X}{g:02X}{b:02X}"
 
-    return [
-        interpolate(color1, color2, k / (n_colors + 1)) for k in range(1, n_colors + 1)
-    ]
+    return [interpolate(color1, color2, k / (n_colors + 1)) for k in range(1, n_colors + 1)]
 
 
-def get_pretty_frame(
-    frame, /, gradient=False, formatter=None, precision=3, repr_html=False
-):
-    stylish_frame = frame.style.set_table_styles(DF_STYLE).format(
-        formatter=formatter, precision=precision
-    )
+def get_pretty_frame(frame, /, gradient=False, formatter=None, precision=3, repr_html=False):
+    stylish_frame = frame.style.set_table_styles(DF_STYLE).format(formatter=formatter, precision=precision)
     if gradient:
         stylish_frame = stylish_frame.background_gradient(DF_CMAP)  # type: ignore
     if repr_html:
-        stylish_frame = stylish_frame.set_table_attributes(
-            "style='display:inline'"
-        )._repr_html_()
+        stylish_frame = stylish_frame.set_table_attributes("style='display:inline'")._repr_html_()
     return stylish_frame
 
 
@@ -231,7 +254,7 @@ def save_and_show_fig(fig, filename, /, img_dir=None, format="png"):
     if not isinstance(img_dir, Path):
         raise TypeError("The `img_dir` argument must be `Path` instance!")
 
-    img_dir.parent.mkdir(parents=True, exist_ok=True)
+    img_dir.mkdir(parents=True, exist_ok=True)
     fig_path = img_dir / (filename + "." + format)
     fig.write_image(fig_path)
 
@@ -242,7 +265,66 @@ def get_n_rows_and_axes(n_features, n_cols, /, start_at=1):
     n_rows = int(np.ceil(n_features / n_cols))
     current_col = range(start_at, n_cols + start_at)
     current_row = range(start_at, n_rows + start_at)
-    return n_rows, product(current_row, current_col)
+    return n_rows, tuple(product(current_row, current_col))
+
+
+def get_kde_estimation(
+    series,
+    *,
+    bw_method=None,
+    weights=None,
+    percentile_range=(0, 100),
+    estimate_points_frac=0.1,
+    space_extension_frac=0.01,
+    cumulative=False,
+):
+    """Return pdf dictionary for set of points using gaussian kernel density estimation.
+
+    Args:
+        series: The dataset with which `stats.gaussian_kde` is initialized.
+        bw_method: Optional. The method used to calculate the estimator bandwidth.
+        This can be 'scott', 'silverman', a scalar constant or a callable. If a scalar,
+        this will be used directly as `kde.factor`. If a callable, it should take
+        a `stats.gaussian_kde` instance as only parameter and return a scalar.
+        If `None` (default), 'scott' is used.
+        weights: Optional. Weights of datapoints. This must be the same shape as dataset.
+        If `None` (default), the samples are assumed to be equally weighted.
+        percentile_range: Optional. Percentile range of the `series` to create estimated space.
+        By default (0, 100) range is used.
+        estimate_points_frac: Optional. Fraction of `series` length to create linspace for
+        estimated points.
+        space_extension_frac: Optional. Estimation space will be extended by
+        `space_extension_frac * len(series)` for both edges.
+        cumulative: Optional. Whether to calculate cdf. Default to `False`.
+
+    Returns:
+        Dictionary with kde space, values, and cumulative values if `cumulative` is `True`.
+    """
+
+    series = pd.Series(series).dropna()
+    kde = stats.gaussian_kde(series, bw_method=bw_method, weights=weights)
+    start, stop = np.percentile(series, percentile_range)
+
+    n_points = int(estimate_points_frac * len(series))
+    n_extend = int(space_extension_frac * len(series))
+
+    if n_extend > 0:
+        dx = (stop - start) / (n_points - 1)
+        start, stop = start - n_extend * dx, stop + n_extend * dx
+
+    kde_space = np.linspace(start, stop, n_points)
+    kde_vals = kde.evaluate(kde_space)
+    results = {"space": kde_space, "vals": kde_vals}
+
+    if cumulative:
+        kde_vals_cum = np.cumsum(kde_vals)
+        return results | {"vals_cumulative": kde_vals_cum / kde_vals_cum.max()}
+
+    return results
+
+
+def unit_norm(x):
+    return x / np.sum(x)
 
 
 # Html highlight. Must be included at the end of all imports!
