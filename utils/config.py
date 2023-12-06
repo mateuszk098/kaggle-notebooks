@@ -190,7 +190,9 @@ def get_interpolated_colors(color1, color2, /, n_colors=1):
 
 
 def get_pretty_frame(frame, /, gradient=False, formatter=None, precision=3, repr_html=False):
-    stylish_frame = frame.style.set_table_styles(DF_STYLE).format(formatter=formatter, precision=precision)
+    stylish_frame = frame.style.set_table_styles(DF_STYLE).format(
+        formatter=formatter, precision=precision
+    )
     if gradient:
         stylish_frame = stylish_frame.background_gradient(DF_CMAP)  # type: ignore
     if repr_html:
@@ -217,14 +219,14 @@ def frame_summary(frame, /):
 
     return pd.DataFrame(
         {
-            "Dtype": frame.dtypes,
-            "MissingValues": missing_vals,
-            "MissingValuesRatio": missing_vals_ratio,
-            "UniqueValues": unique_vals,
-            "UniqueValuesRatio": unique_ratio,
-            "MostFreqValue": most_freq_val,
-            "MostFreqValueCount": most_freq_count,
-            "MostFreqValueCountRatio": freq_count_ratio,
+            "dtype": frame.dtypes,
+            "null": missing_vals,
+            "percent_null": missing_vals_ratio,
+            "unique": unique_vals,
+            "percent_unique": unique_ratio,
+            "mode": most_freq_val,
+            "count_mode": most_freq_count,
+            "percent_count_mode": freq_count_ratio,
         }
     )
 
