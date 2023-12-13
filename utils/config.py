@@ -1,16 +1,17 @@
+import collections
+import functools
 import glob
+import itertools
+import operator
 import os
+import pathlib
 import shutil
 import subprocess
 import sys
+import time
 import warnings
 from array import array
-from collections import defaultdict, namedtuple
 from copy import copy
-from functools import partial, singledispatch
-from itertools import chain, combinations, product
-from pathlib import Path
-from time import strftime
 
 import joblib
 import matplotlib.pyplot as plt
@@ -149,9 +150,9 @@ def download_from_kaggle(expr, /, data_dir=None):
     """
 
     if data_dir is None:
-        data_dir = Path("data/")
+        data_dir = pathlib.Path("data/")
     else:
-        data_dir = Path(data_dir)
+        data_dir = pathlib.Path(data_dir)
 
     match expr.split():
         case ["kaggle", _, "download", *args] if args:
@@ -209,24 +210,24 @@ def numeric_descr(frame, /):
 
 
 def frame_summary(frame, /):
-    missing_vals = frame.isna().sum()
-    missing_vals_ratio = missing_vals / len(frame)
-    unique_vals = frame.apply(lambda col: len(col.unique()))
-    most_freq_count = frame.apply(lambda col: col.value_counts().iloc[0])
-    most_freq_val = frame.mode().iloc[:1].T.squeeze()
-    unique_ratio = unique_vals / len(frame)
-    freq_count_ratio = most_freq_count / len(frame)
+    n_null = frame.isna().sum()
+    n_null_percent = n_null / len(frame) * 100.0
+    n_unique = frame.apply(lambda col: len(col.dropna().unique()))
+    mode_count = frame.apply(lambda col: col.value_counts().iloc[0])
+    mode = frame.mode().iloc[:1].T.squeeze()
+    n_unique_percent = n_unique / len(frame) * 100.0
+    mode_percent_count = mode_count / len(frame) * 100.0
 
     return pd.DataFrame(
         {
             "dtype": frame.dtypes,
-            "null": missing_vals,
-            "percent_null": missing_vals_ratio,
-            "unique": unique_vals,
-            "percent_unique": unique_ratio,
-            "mode": most_freq_val,
-            "count_mode": most_freq_count,
-            "percent_count_mode": freq_count_ratio,
+            "n_null": n_null,
+            "n_null_percent": n_null_percent,
+            "n_unique": n_unique,
+            "n_unique_percent": n_unique_percent,
+            "mode": mode,
+            "mode_count": mode_count,
+            "mode_percent_count": mode_percent_count,
         }
     )
 
@@ -236,8 +237,8 @@ def check_categories_alignment(frame1, frame2, /, out_color=BLUE):
     cat_features = frame2.select_dtypes(include="object").columns.to_list()
 
     for feature in cat_features:
-        frame1_unique = set(frame1[feature].unique())
-        frame2_unique = set(frame2[feature].unique())
+        frame1_unique = set(frame1[feature].dropna().unique())
+        frame2_unique = set(frame2[feature].dropna().unique())
         same = np.all(frame1_unique == frame2_unique)
         print(CLR + f"{feature:25s}", out_color + f"{same}")
 
@@ -252,9 +253,9 @@ def get_lower_triangular_frame(frame, /):
 
 def save_and_show_fig(fig, filename, /, img_dir=None, format="png"):
     if img_dir is None:
-        img_dir = Path("images")
-    if not isinstance(img_dir, Path):
-        raise TypeError("The `img_dir` argument must be `Path` instance!")
+        img_dir = pathlib.Path("images")
+    else:
+        img_dir = pathlib.Path(img_dir)
 
     img_dir.mkdir(parents=True, exist_ok=True)
     fig_path = img_dir / (filename + "." + format)
@@ -267,7 +268,7 @@ def get_n_rows_and_axes(n_features, n_cols, /, start_at=1):
     n_rows = int(np.ceil(n_features / n_cols))
     current_col = range(start_at, n_cols + start_at)
     current_row = range(start_at, n_rows + start_at)
-    return n_rows, tuple(product(current_row, current_col))
+    return n_rows, tuple(itertools.product(current_row, current_col))
 
 
 def get_kde_estimation(
