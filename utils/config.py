@@ -64,7 +64,7 @@ pio.templates["minimalist"] = go.layout.Template(
         yaxis=dict(tickfont_size=TICKSIZE, titlefont_size=TICKSIZE, showgrid=False),
         width=840,
         height=540,
-        legend=dict(yanchor="bottom", xanchor="right", orientation="h", title=""),
+        legend=dict(x=1, y=1, yanchor="bottom", xanchor="right", orientation="h", title=""),
     ),
     layout_colorway=COLOR_SCHEME,
 )
@@ -234,7 +234,7 @@ def frame_summary(frame, /):
 
 def check_categories_alignment(frame1, frame2, /, out_color=BLUE):
     print(CLR + "The same categories in training and test datasets?\n")
-    cat_features = frame2.select_dtypes(include="object").columns.to_list()
+    cat_features = frame2.select_dtypes(include=["object", "category"]).columns.to_list()
 
     for feature in cat_features:
         frame1_unique = set(frame1[feature].dropna().unique())
