@@ -32,7 +32,6 @@ from scipy.cluster.hierarchy import linkage
 from scipy.spatial.distance import squareform
 from sklearn.base import BaseEstimator, OneToOneFeatureMixin, TransformerMixin
 
-# Environment
 ON_KAGGLE = os.getenv("KAGGLE_KERNEL_RUN_TYPE") is not None
 
 # Colorama settings.
@@ -43,33 +42,33 @@ CYAN = Style.BRIGHT + Fore.CYAN
 MAGENTA = Style.BRIGHT + Fore.MAGENTA
 RESET = Style.RESET_ALL
 
-# Data Frame and Plotly colors.
-FONT_COLOR = "#4A4B52"
-BACKGROUND_COLOR = "#FFFCFA"
-GRADIENT_COLOR = "#BAB8B8"
-# Define as numpy array because it supports fancy indexing.
-COLOR_SCHEME = np.array(("#4A4B52", "#FCFCFC", "#E8BA91"))
 # Ticks size for plotly and matplotlib.
 TICKSIZE = 11
+# Data Frame and Plotly colors.
+FONT_COLOR = "#4A4B52"
+GRADIENT_COLOR = "#BAB8B8"
+BACKGROUND_COLOR = "#FFFCFA"
+COLOR_SCHEME = np.array(("#4A4B52", "#FFFCFA", "#E8BA91"))
 
 # Set Plotly theme.
 pio.templates["minimalist"] = go.layout.Template(
     layout=go.Layout(
-        font_family="Open Sans",
-        font_color=FONT_COLOR,
+        width=820,
+        height=520,
         title_font_size=20,
+        font_color=FONT_COLOR,
+        font_family="Open Sans",
         plot_bgcolor=BACKGROUND_COLOR,
         paper_bgcolor=BACKGROUND_COLOR,
         xaxis=dict(tickfont_size=TICKSIZE, titlefont_size=TICKSIZE, showgrid=False),
         yaxis=dict(tickfont_size=TICKSIZE, titlefont_size=TICKSIZE, showgrid=False),
-        width=840,
-        height=540,
         legend=dict(x=1, y=1, yanchor="bottom", xanchor="right", orientation="h", title=""),
     ),
     layout_colorway=COLOR_SCHEME,
 )
 pio.templates.default = "plotly+minimalist"
 
+# Set Matplotlib theme.
 MATPLOTLIB_THEME = {
     "axes.labelcolor": FONT_COLOR,
     "axes.labelsize": TICKSIZE,
@@ -135,24 +134,21 @@ HTML_STYLE = """
 
 
 # Utility functions.
-def download_from_kaggle(expr, /, data_dir=None):
+def download_from_kaggle(expr, data_dir="data"):
     """Download all files from the Kaggle competition/dataset.
 
     Args:
         expr: Match expression to be used by kaggle API, e.g.
             "kaggle competitions download -c competition" or
             "kaggle datasets download -d user/dataset".
-        data_dir: Optional. Directory path where to save files. Default to `None`,
+        data_dir: Optional. Directory path where to save files. Default to `data`,
         which means that files will be downloaded to `data` directory.
 
     Notes:
         If the associated files already exists, then it does nothing.
     """
 
-    if data_dir is None:
-        data_dir = pathlib.Path("data/")
-    else:
-        data_dir = pathlib.Path(data_dir)
+    data_dir = pathlib.Path(data_dir)
 
     match expr.split():
         case ["kaggle", _, "download", *args] if args:
@@ -163,7 +159,7 @@ def download_from_kaggle(expr, /, data_dir=None):
                 shutil.unpack_archive(filename, data_dir)
                 shutil.move(filename, data_dir)
         case _:
-            raise SyntaxError("Invalid expression!")
+            raise SyntaxError("expression is not compatible with Kaggle API")
 
 
 def get_interpolated_colors(color1, color2, /, n_colors=1):
@@ -187,29 +183,33 @@ def get_interpolated_colors(color1, color2, /, n_colors=1):
         b = int(b1 + (b2 - b1) * t)
         return f"#{r:02X}{g:02X}{b:02X}"
 
-    return [interpolate(color1, color2, k / (n_colors + 1)) for k in range(1, n_colors + 1)]
+    return list(interpolate(color1, color2, k / (n_colors + 1)) for k in range(1, n_colors + 1))
 
 
-def get_pretty_frame(frame, /, gradient=False, formatter=None, precision=3, repr_html=False):
-    stylish_frame = frame.style.set_table_styles(DF_STYLE).format(
+def get_pretty_frame(frame, *, gradient=False, formatter=None, precision=3, repr_html=False):
+    frame = pd.DataFrame(frame)
+    stylish_frame = frame.style.set_table_styles(DF_STYLE).format(  # type: ignore
         formatter=formatter, precision=precision
     )
     if gradient:
-        stylish_frame = stylish_frame.background_gradient(DF_CMAP)  # type: ignore
+        stylish_frame = stylish_frame.background_gradient(DF_CMAP)
     if repr_html:
-        stylish_frame = stylish_frame.set_table_attributes("style='display:inline'")._repr_html_()
+        stylish_frame = stylish_frame.set_table_attributes("style='display:inline'")
+        stylish_frame = stylish_frame._repr_html_()  # type: ignore
     return stylish_frame
 
 
 def numeric_descr(frame, /):
+    frame = pd.DataFrame(frame)
     return (
-        frame.describe(percentiles=(0.01, 0.05, 0.25, 0.50, 0.75, 0.95, 0.99))
+        frame.describe(percentiles=[0.01, 0.05, 0.25, 0.50, 0.75, 0.95, 0.99])
         .T.drop("count", axis=1)
         .rename(columns=str.title)
     )
 
 
 def frame_summary(frame, /):
+    frame = pd.DataFrame(frame)
     n_null = frame.isna().sum()
     n_null_percent = n_null / len(frame) * 100.0
     n_unique = frame.apply(lambda col: len(col.dropna().unique()))
@@ -232,8 +232,11 @@ def frame_summary(frame, /):
     )
 
 
-def check_categories_alignment(frame1, frame2, /, out_color=BLUE):
-    print(CLR + "The same categories in training and test datasets?\n")
+def check_categories_alignment(frame1, frame2, out_color=BLUE):
+    frame1 = pd.DataFrame(frame1)
+    frame2 = pd.DataFrame(frame2)
+
+    print(CLR + "The same categories in both datasets?\n")
     cat_features = frame2.select_dtypes(include=["object", "category"]).columns.to_list()
 
     for feature in cat_features:
@@ -244,6 +247,7 @@ def check_categories_alignment(frame1, frame2, /, out_color=BLUE):
 
 
 def get_lower_triangular_frame(frame, /):
+    frame = pd.DataFrame(frame)
     if not frame.shape[0] == frame.shape[1]:
         raise ValueError(f"{type(frame)!r} is not square frame")
     lower_triu = np.triu(np.ones_like(frame, dtype=bool))
@@ -251,20 +255,15 @@ def get_lower_triangular_frame(frame, /):
     return frame.dropna(axis="index", how="all").dropna(axis="columns", how="all")
 
 
-def save_and_show_fig(fig, filename, /, img_dir=None, format="png"):
-    if img_dir is None:
-        img_dir = pathlib.Path("images")
-    else:
-        img_dir = pathlib.Path(img_dir)
-
+def save_and_show_fig(fig, filename, img_dir="images", format="png"):
+    img_dir = pathlib.Path(img_dir)
     img_dir.mkdir(parents=True, exist_ok=True)
     fig_path = img_dir / (filename + "." + format)
     fig.write_image(fig_path)
-
     return Image(fig.to_image(format=format))
 
 
-def get_n_rows_and_axes(n_features, n_cols, /, start_at=1):
+def get_n_rows_and_axes(n_features, n_cols, start_at=1):
     n_rows = int(np.ceil(n_features / n_cols))
     current_col = range(start_at, n_cols + start_at)
     current_row = range(start_at, n_rows + start_at)
@@ -324,10 +323,6 @@ def get_kde_estimation(
         return results | {"vals_cumulative": kde_vals_cum / kde_vals_cum.max()}
 
     return results
-
-
-def unit_norm(x):
-    return x / np.sum(x)
 
 
 # Html highlight. Must be included at the end of all imports!
