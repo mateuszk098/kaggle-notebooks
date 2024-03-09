@@ -5,7 +5,7 @@ from collections import namedtuple
 from functools import partial
 from logging import Logger
 from pathlib import Path
-from typing import Any, Iterable, Protocol, TypeVar, override
+from typing import Any, Iterable, Protocol, TypeVar
 
 import joblib
 import numpy as np
@@ -121,7 +121,6 @@ class LGBMTuner(Tuner[LGBMClassifier]):  # type: ignore - lgbm IS compatible
         self.y = np.asarray(y)
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    @override
     def objective(self, trial: Trial, seed: int = 42) -> Any:
         X, y = self.X, self.y
         model = self.define_model(trial, seed)
@@ -148,7 +147,6 @@ class LGBMTuner(Tuner[LGBMClassifier]):  # type: ignore - lgbm IS compatible
 
         return accuracy_score(y, y_proba.argmax(axis=1))
 
-    @override
     def define_model(self, trial: Trial, seed: int = 42) -> LGBMClassifier:
         frozen_hps = {
             "verbose": -1,

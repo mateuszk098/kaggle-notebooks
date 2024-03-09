@@ -1,17 +1,17 @@
-import collections
-import functools
 import glob
-import itertools
 import operator
 import os
-import pathlib
 import shutil
 import subprocess
 import sys
 import time
 import warnings
 from array import array
+from collections import defaultdict, namedtuple
 from copy import copy
+from functools import partial, reduce, singledispatch
+from itertools import combinations, product
+from pathlib import Path
 
 import joblib
 import matplotlib.pyplot as plt
@@ -148,7 +148,7 @@ def download_from_kaggle(expr, data_dir="data"):
         If the associated files already exists, then it does nothing.
     """
 
-    data_dir = pathlib.Path(data_dir)
+    data_dir = Path(data_dir)
 
     match expr.split():
         case ["kaggle", _, "download", *args] if args:
@@ -186,11 +186,39 @@ def get_interpolated_colors(color1, color2, /, n_colors=1):
     return list(interpolate(color1, color2, k / (n_colors + 1)) for k in range(1, n_colors + 1))
 
 
-def get_pretty_frame(frame, *, gradient=False, formatter=None, precision=3, repr_html=False):
+def get_pretty_frame(
+    frame,
+    *,
+    gradient=False,
+    formatter=None,
+    precision=3,
+    repr_html=False,
+    index_width=None,
+    col_width=None,
+    col_title_centering=False,
+):
     frame = pd.DataFrame(frame)
-    stylish_frame = frame.style.set_table_styles(DF_STYLE).format(  # type: ignore
-        formatter=formatter, precision=precision
-    )
+    style = list(DF_STYLE)
+    if index_width is not None:
+        index_width_style = {
+            "selector": ".index_name",
+            "props": f"min-width: {index_width};",
+        }
+        style.append(index_width_style)
+    if col_width is not None:
+        col_width_style = {
+            "selector": "th",
+            "props": f"min-width: {col_width};",
+        }
+        style.append(col_width_style)
+    if col_title_centering:
+        col_title_style = {
+            "selector": "th.col_heading",
+            "props": "text-align: center;",
+        }
+        style.append(col_title_style)
+    stylish_frame = frame.style.set_table_styles(style)  # type: ignore
+    stylish_frame = stylish_frame.format(formatter=formatter, precision=precision)
     if gradient:
         stylish_frame = stylish_frame.background_gradient(DF_CMAP)
     if repr_html:
@@ -256,7 +284,7 @@ def get_lower_triangular_frame(frame, /):
 
 
 def save_and_show_fig(fig, filename, img_dir="images", format="png"):
-    img_dir = pathlib.Path(img_dir)
+    img_dir = Path(img_dir)
     img_dir.mkdir(parents=True, exist_ok=True)
     fig_path = img_dir / (filename + "." + format)
     fig.write_image(fig_path)
@@ -267,7 +295,7 @@ def get_n_rows_and_axes(n_features, n_cols, start_at=1):
     n_rows = int(np.ceil(n_features / n_cols))
     current_col = range(start_at, n_cols + start_at)
     current_row = range(start_at, n_rows + start_at)
-    return n_rows, tuple(itertools.product(current_row, current_col))
+    return n_rows, tuple(product(current_row, current_col))
 
 
 def get_kde_estimation(
