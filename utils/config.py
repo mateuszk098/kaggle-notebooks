@@ -77,6 +77,10 @@ MATPLOTLIB_THEME = {
     "axes.facecolor": BACKGROUND_COLOR,
     "axes.titlesize": 14,
     "axes.grid": False,
+    "axes.spines.right": False,
+    "axes.spines.left": False,
+    "axes.spines.top": False,
+    "axes.spines.bottom": False,
     "xtick.labelsize": TICKSIZE,
     "xtick.color": FONT_COLOR,
     "ytick.labelsize": TICKSIZE,
@@ -84,12 +88,14 @@ MATPLOTLIB_THEME = {
     "figure.facecolor": BACKGROUND_COLOR,
     "figure.edgecolor": BACKGROUND_COLOR,
     "figure.titlesize": 14,
-    "figure.dpi": 72,  # Locally Seaborn uses 72, meanwhile Kaggle 96.
+    "figure.dpi": 96,  # Locally Seaborn uses 72, meanwhile Kaggle 96.
     "text.color": FONT_COLOR,
     "font.size": TICKSIZE,
     "font.family": "Serif",
 }
-sns.set_theme(rc=MATPLOTLIB_THEME)
+
+for key, value in MATPLOTLIB_THEME.items():
+    plt.rcParams[key] = value
 
 # Define Data Frame theme.
 CELL_HOVER = {  # for row hover use <tr> instead of <td>
