@@ -8,11 +8,11 @@ from logging import Logger
 from pathlib import Path
 from typing import Any, Iterable, Protocol, TypeVar
 
+import lightgbm as lgb
 import numpy as np
 import optuna
 import pandas as pd
 import yaml
-import lightgbm as lgb
 from optuna import samplers
 from optuna.study import Study, StudyDirection
 from optuna.trial import FrozenTrial, Trial
@@ -48,11 +48,11 @@ class Tuner(Protocol):
 
     @abstractmethod
     def objective(self, trial: Trial, seed: int = 42) -> Any:
-        """The `objective` function to be optimized by Optuna. Must be overridden."""
+        """Objective to be optimized by Optuna."""
 
     @abstractmethod
     def define_hps(self, trial: Trial, seed: int = 42) -> dict[str, Any]:
-        """Define hyperparameters for the model. Must be overridden."""
+        """Define hyperparameters for the model."""
 
     def run_study(
         self,
