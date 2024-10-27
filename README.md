@@ -73,5 +73,7 @@ This dataset can be used for various machine learning and computer vision applic
 The dataset may also help improve the tyre industry's quality control process and reduce the chances of accidents due to faulty tyres. The availability of this dataset can facilitate the development of more accurate and efficient inspection systems for tyre production._</br>
 You can see more here: [**https://www.kaggle.com/datasets/warcoder/tyre-quality-classification**](https://www.kaggle.com/datasets/warcoder/tyre-quality-classification).
 
+- [**Vehicle Speed Estimation**](https://github.com/mateuszk098/kaggle_notebooks/tree/master/vehicle_speed_estimation) - _In this notebook, our main focus is on the vehicle speed estimation using CCTV camera, YOLO11 and OpenCV._</br>
+
 - [**Weather Forecast**](https://github.com/mateuszk098/kaggle_notebooks/tree/master/weather_forecast) - _In this notebook, our main focus is on the temperature variations that have occurred in Warsaw, Poland over the past 30 years. We will be examining a time series dataset and utilizing visualizations to better understand the data. Additionally, we will be employing ARIMA and Recurrent Neural Networks to predict the weather patterns for the chosen year._</br>
 You can see more here: [**https://www.kaggle.com/datasets/mateuszk013/warsaw-daily-weather**](https://www.kaggle.com/datasets/mateuszk013/warsaw-daily-weather).
